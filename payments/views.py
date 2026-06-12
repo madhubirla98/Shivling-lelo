@@ -20,6 +20,16 @@ from .services import (
 from .serializers import (
     PaymentSerializer
 )
+from django.db import transaction
+
+from .models import (
+    Payment,
+    PaymentStatusChoices
+)
+
+from orders.models import (
+    OrderStatusChoices
+)
 
 class CreatePaymentAPIView(
     APIView
@@ -49,4 +59,42 @@ class CreatePaymentAPIView(
             PaymentSerializer(
                 payment
             ).data
+        )
+
+class PaymentSuccessAPIView(
+    APIView
+):
+
+    @transaction.atomic
+    def post(
+        self,
+        request,
+        payment_id
+    ):
+
+        payment = Payment.objects.select_for_update().get(
+            id=payment_id
+        )
+
+        payment.status = (
+            PaymentStatusChoices.SUCCESS
+        )
+
+        payment.transaction_id = (
+            "TXN123456"
+        )
+
+        payment.save()
+
+        payment.order.status = (
+            OrderStatusChoices.PAID
+        )
+
+        payment.order.save()
+
+        return Response(
+            {
+                "message":
+                "Payment Success"
+            }
         )
