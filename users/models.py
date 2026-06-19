@@ -1,6 +1,15 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+class UserRoleChoices:
+
+    CUSTOMER = "CUSTOMER"
+    ADMIN = "ADMIN"
+
+    CHOICES = (
+        (CUSTOMER, CUSTOMER),
+        (ADMIN, ADMIN),
+    )
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -9,6 +18,11 @@ class User(AbstractUser):
         unique=True,
         null=True,
         blank=True
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=UserRoleChoices.CHOICES,
+        default=UserRoleChoices.CUSTOMER,
     )
 
     USERNAME_FIELD = "email"

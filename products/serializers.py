@@ -47,10 +47,16 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-            "id",
+             "id",
             "name",
+            "description",
             "price",
-            "images",
+            "brand",
+            "sku",
+            "category",
+            "is_active",
+            "images"
+
         )
 
     def validate_category(self, value):
@@ -84,3 +90,55 @@ class ProductImageUploadSerializer(
             "is_primary",
         )
 
+# __________ADMIN_____________
+
+# ==================================
+# Admin Serializers
+# ==================================
+
+class AdminProductSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = Product
+
+        fields = (
+            "id",
+            "name",
+            "description",
+            "price",
+            "category",
+            "brand",
+            "sku",
+            "is_active",
+        )
+
+    def validate_sku(
+        self,
+        value
+    ):
+
+        queryset = Product.objects.filter(
+            sku=value
+        )
+
+        if self.instance:
+            queryset = queryset.exclude(
+                id=self.instance.id
+            )
+
+        if queryset.exists():
+            raise serializers.ValidationError(
+                "SKU already exists."
+            )
+
+        return value
+
+class InventoryUpdateSerializer(
+    serializers.Serializer
+):
+
+    quantity = serializers.IntegerField(
+        min_value=0
+    )

@@ -37,3 +37,11 @@ class OrderSerializer(
         model = Order
 
         fields = "__all__"
+
+
+
+class UpdateOrderStatusSerializer(
+    serializers.Serializer
+):
+
+    status = serializers.CharField()
