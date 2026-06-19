@@ -4,7 +4,8 @@ from .services import ProductImageUploadView
 from .views import (
     CategoryListCreateAPIView,
     CategoryDetailAPIView, ProductListCreateAPIView, ProductDetailAPIView, InventoryListCreateAPIView,
-    InventoryDetailAPIView, ProductImageListAPIView, ProductImageDeleteAPIView,
+    InventoryDetailAPIView, ProductImageListAPIView, ProductImageDeleteAPIView,AdminProductCreateAPIView,
+AdminProductUpdateAPIView,AdminProductDeleteAPIView, AdminInventoryUpdateAPIView
 )
 
 urlpatterns = [
@@ -47,5 +48,32 @@ path(
 path(
     "images/<int:image_id>/",
     ProductImageDeleteAPIView.as_view()
+),
+# ==================================
+# Admin APIs
+# ==================================
+
+path(
+    "admin/products/",
+    AdminProductCreateAPIView.as_view(),
+    name="admin-product-create",
+),
+
+path(
+    "admin/products/<int:pk>/",
+    AdminProductUpdateAPIView.as_view(),
+    name="admin-product-update",
+),
+
+path(
+    "admin/products/<int:pk>/delete/",
+    AdminProductDeleteAPIView.as_view(),
+    name="admin-product-delete",
+),
+
+path(
+    "admin/products/<int:product_id>/inventory/",
+    AdminInventoryUpdateAPIView.as_view(),
+    name="admin-inventory-update",
 ),
 ]

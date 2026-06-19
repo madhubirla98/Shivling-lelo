@@ -5,12 +5,21 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+from rest_framework import generics
 
 from .models import Category, Product, Inventory, ProductImage
 from .pagination import ProductPagination
 from .serializers import CategorySerializer, ProductSerializer, InventorySerializer, ProductImageSerializer
 from .services import CategoryService, ProductService, InventoryService
 from .selectors import CategorySelector, ProductSelector, InventorySelector
+from users.permissions import (
+    IsAdminUserRole
+)
+
+from .serializers import (
+    AdminProductSerializer,
+    InventoryUpdateSerializer,
+)
 
 
 class CategoryListCreateAPIView(APIView):
@@ -372,4 +381,109 @@ class ProductImageDeleteAPIView(
 
         return Response(
             status=status.HTTP_204_NO_CONTENT
+        )
+
+#____________________ADMIN APIS ________________________
+
+# ==================================
+# Admin APIs
+# ==================================
+
+class AdminProductCreateAPIView(
+    generics.CreateAPIView
+):
+
+    serializer_class = (
+        AdminProductSerializer
+    )
+
+    permission_classes = [
+        IsAdminUserRole
+    ]
+
+    def perform_create(
+        self,
+        serializer
+    ):
+
+        product = serializer.save()
+
+        Inventory.objects.create(
+            product=product,
+            quantity=0,
+            reserved_quantity=0,
+        )
+
+class AdminProductUpdateAPIView(
+    generics.UpdateAPIView
+):
+
+    queryset = Product.objects.all()
+
+    serializer_class = (
+        AdminProductSerializer
+    )
+
+    permission_classes = [
+        IsAdminUserRole
+    ]
+
+class AdminProductDeleteAPIView(
+    generics.DestroyAPIView
+):
+
+    queryset = Product.objects.all()
+
+    permission_classes = [
+        IsAdminUserRole
+    ]
+
+
+class AdminInventoryUpdateAPIView(
+    APIView
+):
+
+    permission_classes = [
+        IsAdminUserRole
+    ]
+
+    def patch(
+        self,
+        request,
+        product_id
+    ):
+
+        serializer = (
+            InventoryUpdateSerializer(
+                data=request.data
+            )
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        inventory = (
+            Inventory.objects.get(
+                product_id=product_id
+            )
+        )
+
+        inventory.quantity = (
+            serializer.validated_data[
+                "quantity"
+            ]
+        )
+
+        inventory.save(
+            update_fields=[
+                "quantity"
+            ]
+        )
+
+        return Response(
+            {
+                "message":
+                "Inventory updated successfully."
+            }
         )
